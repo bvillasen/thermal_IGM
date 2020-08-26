@@ -1,246 +1,140 @@
 import sys
 import numpy as np
+from cosmo_constants import K_b
+
+alpha_min = 1e-30
+Gamma_min = 1e-30
+
+ev_to_K = 1.160451812e4
+K_to_ev = 1./ev_to_K
 
 #Colisional excitation of neutral hydrogen (HI) and singly ionized helium (HeII)
-def Cooling_Rate_Collisional_Excitation_e_HI( n_e, n_HI, temp ):
-  temp_5 = temp / 1e5
-  Lambda_e_HI = 7.50e-19 * np.exp(-118348.0 / temp) * n_e*n_HI/( 1 + temp_5**(0.5) )
-  return Lambda_e_HI
+def Collisional_Ionization_Rate_e_HI_Abel97( temp ):
+  temp = temp * K_to_ev
+  ln_T = np.log(temp)
+  k1 = np.exp( -32.71396786 + 13.536556 * ln_T - 5.73932875 * ln_T**2 + 1.56315498 * ln_T**3 -
+       0.2877056 * ln_T**4 + 3.48255977e-2 * ln_T**5 - 2.63197617e-3 * ln_T**6 +
+       1.11954395e-4 * ln_T**7 - 2.03914985e-6 * ln_T**8 ) # cm^3 s^-1
+  return k1
 
-def Cooling_Rate_Collisional_Excitation_e_HeII( n_e, n_HeII, temp ):
-  temp_5 = temp / 1e5
-  Lambda_e_HeII = 5.54e-17 * temp**(-0.397) * np.exp(-473638.0 / temp) * n_e*n_HeII/( 1 + temp_5**(0.5) )
-  return Lambda_e_HeII
+def Recombination_Rate_HII_Abel97( temp ):
+  temp = temp * K_to_ev
+  ln_T = np.log(temp)
+  k2 = np.exp( -28.6130338 - 0.72411256 * ln_T - 2.02604473e-2 * ln_T**2 -
+      2.38086188e-3 * ln_T**3 - 3.21260521e-4 * ln_T**4 - 1.42150291e-5 * ln_T**5 +
+      4.98910892e-6 * ln_T**6 + 5.75561414e-7 * ln_T**7 - 1.85676704e-8 * ln_T**8 -
+      3.07113524e-9 * ln_T**9 ) # cm 3 s -1 .
+  return k2 
+  
+def Collisional_Ionization_Rate_e_HeI_Abel97( temp ):
+  temp = temp * K_to_ev
+  ln_T = np.log(temp)
+  k3 = np.exp( -44.09864886 + 23.91596563 * ln_T - 10.7532302 * ln_T**2 + 3.05803875 * ln_T**3 -
+      0.56851189 * ln_T**4 + 6.79539123e-2 * ln_T**5 - 5.00905610e-3 * ln_T**6 +
+      2.06723616e-4 * ln_T**7 - 3.64916141e-6 * ln_T**8 ) #cm 3 s -1 .
+  return k3
+  
+def Collisional_Ionization_Rate_e_HeII_Abel97( temp ):
+    temp = temp * K_to_ev
+    ln_T = np.log(temp)    
+    k5 = np.exp( -68.71040990 + 43.93347633 * ln_T - 18.4806699 * ln_T**2 + 4.70162649 * ln_T**3 -
+        0.76924663 * ln_T**4 + 8.113042e-2 * ln_T**5 - 5.32402063e-3 * ln_T**6 +
+        1.97570531e-4 * ln_T**7 - 3.16558106e-6 * ln_T**8 ) # cm 3 s -1 .  
+    return k5
+    
+def Collisional_Ionization_Rate_HI_HI_Lenzuni91( temp ):
+  k = 1.2e-17 * temp**(1.2) * np.exp(-157800 / temp )
+  return k
+  
+def Collisional_Ionization_Rate_HII_HI_Lenzuni91( temp ):
+  k = 9e-31 * temp**3
+  return k
 
+def Collisional_Ionization_Rate_HeI_HI_Lenzuni91( temp ):
+  k = 1.75e-17 * temp**(1.3) * np.exp(-157800 / temp )
+  return k
+  
+  
+  
+def Recombination_Rate_HII_Hui97( temp ):
+  T_thr_HI = 157807
+  lamda_HI = 2 * T_thr_HI / temp
+  alpha = 1.269e-13 * lamda_HI**1.503 / ( 1 + (lamda_HI/0.522)**0.470 )**1.923
+  return alpha
+  
+def Recombination_Rate_HeII_Hui97( temp ):
+  T_thr_HeI = 285335
+  lamda_HeI = 2 * T_thr_HeI / temp
+  alpha = 3e-14 * lamda_HeI**0.654
+  return alpha
+  
+def Recombination_Rate_HeIII_Hui97( temp ):
+  T_thr_HeII = 631515
+  lamda_HeII = 2 * T_thr_HeII / temp
+  alpha = 2 * 1.269e-13 * lamda_HeII**1.503 / ( 1 + (lamda_HeII/0.522)**0.470 )**1.923
+  return alpha
+  
 
-#Colisional ionization  of HI, HeI and HeII
-def Cooling_Rate_Collisional_Ionization_e_HI( n_e, n_HI, temp ):
-  temp_5 = temp / 1e5
-  Lambda_e_HI = 1.27e-21 * temp**(0.5) * np.exp(-157809.1 / temp) * n_e*n_HI/( 1 + temp_5**(0.5) )
-  return Lambda_e_HI
-
-
-def Cooling_Rate_Collisional_Ionization_e_HeI( n_e, n_HeI, temp ):
-  temp_5 = temp / 1e5
-  Lambda_e_HeI = 9.38e-22 * temp**(0.5) * np.exp(-285335.4 / temp) * n_e*n_HeI/( 1 + temp_5**(0.5) )
-  return Lambda_e_HeI
-
-def Cooling_Rate_Collisional_Ionization_e_HeII( n_e, n_HeII, temp ):
-  temp_5 = temp / 1e5
-  Lambda_e_HeII = 4.95e-22 * temp**(0.5) * np.exp(-631515.0/ temp) * n_e*n_HeII/( 1 + temp_5**(0.5) )
-  return Lambda_e_HeII
-
-
-def Collisional_Ionization_Rate_e_HI( temp ):
-  temp_5 = temp / 1e5
-  Gamma_e_HI = 5.85e-11 * temp**(0.5) *  np.exp(-157809.1 / temp) / ( 1 + temp_5**(0.5) )
-  return Gamma_e_HI
-
-def Collisional_Ionization_Rate_e_HeI( temp ):
-  temp_5 = temp / 1e5
-  Gamma_e_HeI = 2.38e-11 * temp**(0.5) *  np.exp(-285335.4 / temp) / ( 1 + temp_5**(0.5) )
-  return Gamma_e_HeI
-
-def Collisional_Ionization_Rate_e_HeII( temp ):
-  temp_5 = temp / 1e5
-  Gamma_e_HeII = 5.688e-12 * temp**(0.5) *  np.exp(-631515.0 / temp) / ( 1 + temp_5**(0.5) )
-  return Gamma_e_HeII
-
-
-#Standard Recombination of HII, HeII and HeIII
-
-def Cooling_Rate_Recombination_HII( n_e, n_HII, temp ):
-  temp_3 = temp / 1e3
-  temp_6 = temp / 1e6
-  Lambda_HII = 8.70e-27 * temp**(0.5) * temp_3**(-0.2) * ( 1 + temp_6**0.7 )**(-1) * n_e * n_HII 
+def Cooling_Rate_Recombination_HII_Hui97( n_e, n_HII, temp ):
+  T_thr_HI = 157807
+  lambda_HI = 2 * T_thr_HI / temp
+  Lambda_HII = 1.778e-29 * temp * lambda_HI**1.965 / ( 1 + (lambda_HI/0.541)**0.502 )**2.697 * n_e * n_HII 
   return Lambda_HII
   
-def Cooling_Rate_Recombination_HeII( n_e, n_HeII, temp ):
-  Lambda_HeII = 1.55e-26 * temp**(0.3647) * n_e * n_HeII 
-  return Lambda_HeII
-
-
-def Cooling_Rate_Recombination_HeIII( n_e, n_HeIII, temp ):
-  temp_3 = temp / 1e3
-  temp_6 = temp / 1e6
-  Lambda_HeIII = 3.48e-26 * temp**(0.5) * temp_3**(-0.2) * ( 1 + temp_6**0.7 )**(-1) * n_e * n_HeIII 
-  return Lambda_HeIII
-    
-
-
-def Recombination_Rate_HII( temp ):
-  temp_3 = temp / 1e3
-  temp_6 = temp / 1e6
-  alpha_HII = 8.4e-11 * temp**(-0.5) * temp_3**(-0.2) * ( 1 + temp_6**0.7 )**(-1)
-  return alpha_HII
- 
-def Recombination_Rate_HeII( temp ):
- alpha_HeII = 1.5e-10 * temp**(-0.6353)
- return alpha_HeII
-
-def Recombination_Rate_HeIII( temp ):
-  temp_3 = temp / 1e3
-  temp_6 = temp / 1e6
-  alpha_HII = 3.36e-10 * temp**(-0.5) * temp_3**(-0.2) * ( 1 + temp_6**0.7 )**(-1)
-  return alpha_HII
+def Cooling_Rate_Recombination_HeII_Hui97( n_e, n_HII, temp ):
+  T_thr_HeI = 285335
+  lamda_HeI = 2 * T_thr_HeI / temp
+  Lambda_HII = K_b * temp * 3e-14 * lamda_HeI**0.654 * n_e * n_HII 
+  return Lambda_HII
   
- 
- 
-#Dielectronic recombination of HeII
-def Cooling_Rate_Recombination_dielectronic_HeII( n_e, n_HeII, temp ):
- Lambda_d = 1.24e-13 * temp**(-1.5) * np.exp( -470000.0/temp ) * ( 1 + 0.3 * np.exp( -94000.0/temp ) ) * n_e * n_HeII
- return Lambda_d
+def Cooling_Rate_Recombination_HeIII_Hui97( n_e, n_HII, temp ):
+  T_thr_HeII = 631515
+  lambda_HeII = 2 * T_thr_HeII / temp
+  Lambda_HII = 8 * 1.778e-29 * temp * lambda_HeII**1.965 / ( 1 + (lambda_HeII/0.541)**0.502 )**2.697 * n_e * n_HII 
+  return Lambda_HII
+  
+def Recombination_Rate_dielectronic_HeII_Hui97( temp ):
+  T_thr_HeI = 285335
+  T_thr_HeII = 631515
+  lambda_HeI = 2 * T_thr_HeI / temp
+  alpha = 1.9e-3 * temp**(-3./2) * np.exp( -0.75*lambda_HeI/2 ) * ( 1 + 0.3 * np.exp(-0.15 * lambda_HeI / 2 ) )
+  return alpha
+    
+    
+def Cooling_Rate_Recombination_dielectronic_HeII_Hui97( n_e, n_HeII, temp ):
+  T_thr_HeI = 285335
+  T_thr_HeII = 631515
+  lambda_HeI = 2 * T_thr_HeI / temp
+  Lambda = 0.75 * K_b * temp * 1.9e-3 * temp**(-3./2) * np.exp( -0.75*lambda_HeI/2 ) * ( 1 + 0.3 * np.exp(-0.15 * lambda_HeI / 2 ) ) * n_e * n_HeII
+  return Lambda
+  
+def Collisional_Ionization_Rate_e_HI_Hui97( temp ):
+  T_thr_HI = 157807
+  lambda_HI = 2 * T_thr_HI / temp
+  k = 21.11 * temp**(-3/2) * np.exp(-lambda_HI/2) * lambda_HI**(-1.089) / ( 1 + (lambda_HI/0.354)**0.874 )**1.101
+  return k
 
+def Cooling_Rate_Collisional_Excitation_e_HI_Hui97( n_e, n_HI, temp ):
+  T_thr_HI = 157807
+  lambda_HI = 2 * T_thr_HI / temp
+  k = 7.5e-19 * np.exp( -0.75 * lambda_HI / 2 ) / ( 1 + (temp/1e5)**0.5 )
+  return k * n_e * n_HI
 
-def Recombination_Rate_dielectronic_HeII( temp ):
- alpha_d = 1.9e-3 * temp**(-1.5) * np.exp( -470000.0/temp ) * ( 1 + 0.3 * np.exp( -94000.0/temp ) )
- return alpha_d
+def Cooling_Rate_Collisional_Excitation_e_HeII_Hui97( n_e, n_HeII, temp ):
+  T_thr_HeII = 631515
+  lambda_HeII = 2 * T_thr_HeII / temp
+  k = 5.54e-17 * (1/temp)**0.397 * np.exp( -0.75 * lambda_HeII / 2 ) / ( 1 + (temp/1e5)**0.5 )
+  return k * n_e * n_HeII
 
-
-#Free-Free emission (Bremsstrahlung) 
-def gaunt_factor( log10_T ):
-  gff = 1.1 + 0.34 * np.exp( -(5.5 - log10_T)**2 / 3.0   )
-  return gff 
-
-def Cooling_Rate_Bremsstrahlung( n_e, n_HII, n_HeII, n_HeIII, temp ):
-  gff = gaunt_factor( np.log10(temp) )
-  Lambda_bmst = 1.42e-27 * gff * temp**(0.5) * ( n_HII + n_HeII + 4*n_HeIII ) * n_e
-  return Lambda_bmst
+def Cooling_Rate_Compton_CMB_Peebles93( n_e, temp, current_z, cosmo ):
+  # dQ_dt = 6.35e-41 * cosmo.Omega_b * cosmo.h**2 * X_e * ( 1 + z )**7 * ( 2.726*(1+z) - temp ) 
+  dQ_dt = 6.35e-41 * cosmo.Omega_b * cosmo.h**2 * X_e * ( 1 + z )**7 * ( 2.726*(1+z) - temp ) 
 
 
 
 #Compton cooling off the CMB 
-
-
-
-def Get_Ionization_Fractions_Iterative( n_H, n_He, T, Gamma_phot  ):
-  y = n_He / n_H
-
-  #Recombination Rates
-  alpha_HII = Recombination_Rate_HII( T )
-  alpha_HeII = Recombination_Rate_HeII( T )
-  alpha_HeIII = Recombination_Rate_HeIII( T )
-  alpha_d = Recombination_Rate_dielectronic_HeII( T )
-
-  #Ionization Rates
-  #Collisional
-  Gamma_e_HI = Collisional_Ionization_Rate_e_HI( T )
-  Gamma_e_HeI = Collisional_Ionization_Rate_e_HeI( T )
-  Gamma_e_HeII = Collisional_Ionization_Rate_e_HeII( T )
-  #Photoionization 
-  Gamma_phot_HI   = Gamma_phot['HI']   #Photoionization of neutral hydrogen
-  Gamma_phot_HeI  = Gamma_phot['HeI']  #Photoionization of neutral helium
-  Gamma_phot_HeII = Gamma_phot['HeII'] #Photoionization of singly ionized helium
-
-  # initialize eletron fraction
-  n_e = n_H # When no Radiation the electron number is not needed for computin ionization fractions
-  
-  #Compute Ionization Fractions
-  #Eq 33:
-  n_HI  = alpha_HII * n_H / (  alpha_HII + Gamma_e_HI + Gamma_phot_HI/n_e   )
-  n_HII = n_H - n_HI
-  #Eq 35:
-  n_HeII = y * n_H / ( 1 + (alpha_HeII + alpha_d)/(Gamma_e_HeI + Gamma_phot_HeI/n_e) + (Gamma_e_HeII + Gamma_phot_HeII/n_e)/alpha_HeIII )
-  #Eq 36:
-  n_HeI = n_HeII * ( alpha_HeII + alpha_d ) / (Gamma_e_HeI + Gamma_phot_HeI/n_e) 
-  #Eq 37:
-  n_HeIII = n_HeII * ( Gamma_e_HeII + Gamma_phot_HeII/n_e ) / alpha_HeIII
-  #Eq 34:
-  n_e_new  = n_HII + n_HeII + 2*n_HeIII 
-  
-  ionization_frac = {}
-  ionization_frac['HI'] = n_HI
-  ionization_frac['HII'] = n_HII
-  ionization_frac['HeI'] = n_HeI
-  ionization_frac['HeII'] = n_HeII
-  ionization_frac['HeIII'] = n_HeIII
-  ionization_frac['e'] = n_e
-  return ionization_frac
-
-
-def Get_Ionization_Fractions( n_H, n_He, T  ):
-  n_e = n_H # When no Radiation the electron number is not needed for computin ionization fractions
-  y = n_He / n_H
-
-  #Recombination Rates
-  alpha_HII = Recombination_Rate_HII( T )
-  alpha_HeII = Recombination_Rate_HeII( T )
-  alpha_HeIII = Recombination_Rate_HeIII( T )
-  alpha_d = Recombination_Rate_dielectronic_HeII( T )
-
-  #Ionization Rates
-  #Collisional
-  Gamma_e_HI = Collisional_Ionization_Rate_e_HI( T )
-  Gamma_e_HeI = Collisional_Ionization_Rate_e_HeI( T )
-  Gamma_e_HeII = Collisional_Ionization_Rate_e_HeII( T )
-  #Photoionization 
-  Gamma_phot_HI = 0 #Photoionization of neutral hydrogen
-  Gamma_phot_HeI = 0 #Photoionization of neutral helium
-  Gamma_phot_HeII = 0 #Photoionization of singly ionized helium
-
-  #Compute Ionization Fractions
-  #Eq 33:
-  n_HI  = alpha_HII * n_H / (  alpha_HII + Gamma_e_HI + Gamma_phot_HI/n_e   )
-  n_HII = n_H - n_HI
-  #Eq 35:
-  n_HeII = y * n_H / ( 1 + (alpha_HeII + alpha_d)/(Gamma_e_HeI + Gamma_phot_HeI/n_e) + (Gamma_e_HeII + Gamma_phot_HeII/n_e)/alpha_HeIII )
-  #Eq 36:
-  n_HeI = n_HeII * ( alpha_HeII + alpha_d ) / (Gamma_e_HeI + Gamma_phot_HeI/n_e) 
-  #Eq 37:
-  n_HeIII = n_HeII * ( Gamma_e_HeII + Gamma_phot_HeII/n_e ) / alpha_HeIII
-  #Eq 34:
-  n_e = n_HII + n_HeII + 2*n_HeIII 
-  
-  ionization_frac = {}
-  ionization_frac['HI'] = n_HI
-  ionization_frac['HII'] = n_HII
-  ionization_frac['HeI'] = n_HeI
-  ionization_frac['HeII'] = n_HeII
-  ionization_frac['HeIII'] = n_HeIII
-  ionization_frac['e'] = n_e
-  return ionization_frac
-  
-def Get_Cooling_Rates( n_H, n_He, T  ):
-  #Compute ioniozation fractions
-  ionization_frac = Get_Ionization_Fractions( n_H, n_He, T )
-
-  #Compute Cooling Rates
-  n_HI    = ionization_frac['HI']
-  n_HII   = ionization_frac['HII']
-  n_HeI   = ionization_frac['HeI']
-  n_HeII  = ionization_frac['HeII']
-  n_HeIII = ionization_frac['HeIII']
-  n_e     = ionization_frac['e']
-
-  #Colisional excitation of neutral hydrogen (HI) and singly ionized helium (HeII)
-  Lambda_exitation_HI = Cooling_Rate_Collisional_Excitation_e_HI( n_e, n_HI, T )  
-  Lambda_exitation_HeII = Cooling_Rate_Collisional_Excitation_e_HeII( n_e, n_HeII, T )
-    
-  #Colisional ionization  of HI, HeI and HeII
-  Lambda_ionization_HI = Cooling_Rate_Collisional_Ionization_e_HI( n_e, n_HI, T )
-  Lambda_ionization_HeI = Cooling_Rate_Collisional_Ionization_e_HeI( n_e, n_HeI, T )
-  Lambda_ionization_HeII = Cooling_Rate_Collisional_Ionization_e_HeII( n_e, n_HeII, T )
-  
-  #Standard Recombination of HII, HeII and HeIII
-  Lambda_recombination_HII = Cooling_Rate_Recombination_HII(  n_e, n_HII, T )
-  Lambda_recombination_HeII = Cooling_Rate_Recombination_HeII(  n_e, n_HeII, T )
-  Lambda_recombination_HeIII = Cooling_Rate_Recombination_HeIII(  n_e, n_HeIII, T )
-  Lambda_recombination_dielectronic_HeII = Cooling_Rate_Recombination_dielectronic_HeII(  n_e, n_HeII, T )
-      
-  #Free-Free (Bremsstrahlung)
-  Lambda_bremst = Cooling_Rate_Bremsstrahlung( n_e, n_HII, n_HeII, n_HeIII, T )
-
-  cooling_rates = { 'Excitation':{}, 'Ionization':{}, 'Recombination':{}, 'Bremsstrahlung':{} }
-  cooling_rates['Excitation']['HI'] = Lambda_exitation_HI
-  cooling_rates['Excitation']['HeII'] = Lambda_exitation_HeII
-  cooling_rates['Ionization']['HI'] = Lambda_ionization_HI
-  cooling_rates['Ionization']['HeI'] = Lambda_ionization_HeI
-  cooling_rates['Ionization']['HeII'] = Lambda_ionization_HeII
-  cooling_rates['Recombination']['HII'] = Lambda_recombination_HII
-  cooling_rates['Recombination']['HeII'] = Lambda_recombination_HeII
-  cooling_rates['Recombination']['HeIII'] = Lambda_recombination_HeIII
-  cooling_rates['Recombination']['HeII_dielectronic'] = Lambda_recombination_dielectronic_HeII
-  cooling_rates['Bremsstrahlung'] = Lambda_bremst
-  return cooling_rates
-  
-  
+def Cooling_Rate_Compton_CMB_MillesOstriker01( n_e, temp, z ):
+  # M. Coleman Miller and Eve C. Ostriker 2001 (https://iopscience.iop.org/article/10.1086/323321/fulltext/)
+  T_3 = temp / 1e3
+  T_cm_3 = 0 # Don't know this value
+  return 5.6e-33 * n_e * ( 1 + z )**4 * ( T_3 - T_cm_3 ) 
