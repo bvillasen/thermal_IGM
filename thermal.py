@@ -68,11 +68,6 @@ for field in fields:
   solution[field] = []
 
 
-
-
-
-
-
 n_min = 1e-60
 current_state = {}
 current_state['temperature'] = T_start
