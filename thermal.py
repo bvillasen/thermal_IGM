@@ -31,7 +31,7 @@ z_start = 16
 cosmo = Cosmology( z_start )
 
 # Initialize parameters
-n_samples = 50000
+n_samples = 20000
 z_end = 0.
 T_start = 0.1
 X = 0.75984
@@ -46,9 +46,9 @@ n_He_comov = rho_He / (4*M_p)    # cm^-3
 # Create scale factor array
 a_start = 1. / ( z_start + 1 )
 a_end = 1. / ( z_end + 1 )
-a_vals = np.linspace( a_start, a_end, n_samples)
+z_vals = np.linspace( z_end, z_start, n_samples)[::-1]
+a_vals = 1/( z_vals + 1 )
 da_vals = a_vals[1:] - a_vals[:-1]
-z_vals = 1/a_vals - 1
 dz_vals = z_vals[1:] - z_vals[:-1]
 
 # Set photoheating and photoionization rates
