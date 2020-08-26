@@ -1,7 +1,7 @@
 import numpy as np
 from cosmo_constants import Myear, Mpc, K_b, M_p   
-# from cooling_rates import *
-
+from cooling_rates_Katz95 import *
+from cooling_rates import *
 
 rate_min = 1e-100
 def append_state_to_solution( fields, current_state, solution ):
