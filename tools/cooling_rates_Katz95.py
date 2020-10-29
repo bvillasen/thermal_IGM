@@ -2,8 +2,11 @@ import sys
 import numpy as np
 
 
-alpha_min = 1e-60
-Gamma_min = 1e-60
+rate_min = 1e-30
+
+
+alpha_min = rate_min
+Gamma_min = rate_min
 
 
 #Colisional excitation of neutral hydrogen (HI) and singly ionized helium (HeII)
@@ -127,95 +130,6 @@ def Cooling_Rate_Compton_CMB_Katz95( n_e, temp, z ):
   return 5.41e-36 * n_e * temp * ( 1 + z )**4
 
 
-# def Get_Ionization_Fractions_Iterative( n_H, n_He, T, Gamma_phot  ):
-# 
-# 
-#   #Recombination Rates
-#   alpha_HII = Recombination_Rate_HII( T )
-#   alpha_HeII = Recombination_Rate_HeII( T )
-#   alpha_HeIII = Recombination_Rate_HeIII( T )
-#   alpha_d = Recombination_Rate_dielectronic_HeII( T )
-# 
-#   # print( alpha_HII )
-#   # print( alpha_HeII )
-#   # print( alpha_HeIII )
-#   # print( alpha_d )
-# 
-#   #Ionization Rates
-#   #Collisional
-#   Gamma_e_HI = Collisional_Ionization_Rate_e_HI( T )
-#   Gamma_e_HeI = Collisional_Ionization_Rate_e_HeI( T )
-#   Gamma_e_HeII = Collisional_Ionization_Rate_e_HeII( T )
-# 
-#   # print( Gamma_e_HI )
-#   # print( Gamma_e_HeI )
-#   # print( Gamma_e_HeII )
-# 
-#   #Photoionization 
-#   Gamma_phot_HI   = Gamma_phot['HI']   #Photoionization of neutral hydrogen
-#   Gamma_phot_HeI  = Gamma_phot['HeI']  #Photoionization of neutral helium
-#   Gamma_phot_HeII = Gamma_phot['HeII'] #Photoionization of singly ionized helium
-# 
-#   epsilon = 1e-1
-#   # initialize eletron fraction
-#   n_e = n_H # When no Radiation the electron number is not needed for computin ionization fractions
-#   iterate = True
-#   n_iter = 0
-#   #Compute Ionization Fractions
-#   while iterate:
-#     if n_iter > 0:
-#       vals_old = {}
-#       vals_old['HI']    = n_HI
-#       vals_old['HII']   = n_HII
-#       vals_old['HeI']   = n_HeI
-#       vals_old['HeII']  = n_HeII
-#       vals_old['HeIII'] = n_HeIII
-#       vals_old['e'] = n_e
-# 
-#     #Eq 33:
-#     n_HI  = alpha_HII * n_H / (  alpha_HII + Gamma_e_HI + Gamma_phot_HI/n_e   )
-#     n_HII = n_H - n_HI
-#     #Eq 35:
-#     n_HeII = n_He / ( 1 + (alpha_HeII + alpha_d)/(Gamma_e_HeI + Gamma_phot_HeI/n_e) + (Gamma_e_HeII + Gamma_phot_HeII/n_e)/alpha_HeIII )
-#     #Eq 36:
-#     n_HeI = n_HeII * ( alpha_HeII + alpha_d ) / (Gamma_e_HeI + Gamma_phot_HeI/n_e) 
-#     #Eq 37:
-#     n_HeIII = n_HeII * ( Gamma_e_HeII + Gamma_phot_HeII/n_e ) / alpha_HeIII
-#     #Eq 34:
-#     n_e  = n_HII + n_HeII + 2*n_HeIII
-# 
-#     if n_iter > 0:
-#       vals_new = {}
-#       vals_new['HI']    = n_HI
-#       vals_new['HII']   = n_HII
-#       vals_new['HeI']   = n_HeI
-#       vals_new['HeII']  = n_HeII
-#       vals_new['HeIII'] = n_HeIII
-#       vals_new['e'] = n_e 
-# 
-#       iterate = False
-#       for name in ['HI',  'HeI', 'HeII',  'e' ]:
-#         v_old = vals_old[name]
-#         v_new = vals_new[name]
-#         diff = ( v_new - v_old ) / v_old
-#         if np.abs(diff) > epsilon: 
-#           # print( diff )
-#           iterate = True
-# 
-#     n_iter += 1
-# 
-#   print(' Chemistry Converged in {0} iterationms'.format(n_iter))
-# 
-#   ionization_frac = {}
-#   ionization_frac['n_HI'] = n_HI
-#   ionization_frac['n_HII'] = n_HII
-#   ionization_frac['n_HeI'] = n_HeI
-#   ionization_frac['n_HeII'] = n_HeII
-#   ionization_frac['n_HeIII'] = n_HeIII
-#   ionization_frac['n_e'] = n_e
-#   return ionization_frac
-# 
-# 
 # def Get_Ionization_Fractions( n_H, n_He, T  ):
 #   n_e = n_H # When no Radiation the electron number is not needed for computin ionization fractions
 #   y = n_He / n_H

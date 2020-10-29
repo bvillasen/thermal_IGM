@@ -10,6 +10,7 @@ K_b = 1.380649e-16 #cm2 g s-2 K-1  (ergs/K)
 
 #Mass of proton
 M_p = 1.6726219e-27 #kg
+M_p_cgs = M_p * 1000 
 M_e = 9.10938356e-31 #kg
 e_charge = 1.60217662e-19 # Coulombs 
 
