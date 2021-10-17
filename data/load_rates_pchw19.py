@@ -1,7 +1,9 @@
+import os
 import numpy as np
 from cosmo_constants import eV_to_ergs
 
-file_name = 'data/data_pchw19.dat'
+thermal_dir = os.getcwd()
+file_name = thermal_dir + '/data/data_pchw19.dat'
 
 data = np.loadtxt( file_name ).T
 
@@ -26,7 +28,7 @@ rates_pchw19['ionization']['HeI'] = i_HeI
 rates_pchw19['ionization']['HeII'] = i_HeII
 
 
-file_name = 'data/data_pchw19_equilibrium.dat'
+file_name = thermal_dir + '/data/data_pchw19_equilibrium.dat'
 data = np.loadtxt( file_name ).T
 
 z = data[0]

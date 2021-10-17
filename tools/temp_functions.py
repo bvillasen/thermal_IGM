@@ -5,17 +5,17 @@ from cooling_rates_Katz95 import *
 from cooling_rates import *
 from rk4 import RK4_step
 from tools import printProgress
+from uvb_functions import interpolate_rates
 
 
-rate_min = 1e-30
 
 
-alpha_min = rate_min
-Gamma_min = rate_min
 
 fields = [ 'temperature', 'n_H', 'n_HI', 'n_HII', 'n_He', 'n_HeI', 'n_HeII', 'n_HeIII', 'n_e' ]
 
-def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates_in, cosmo, z_start, z_end, n_samples, HI_rates_factor=1.0, HeI_rates_factor=1.0, HeII_rates_factor=1.0, delta_z_HI=0.0, delta_z_HeII=0.0 ):
+
+
+def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None ):
 
   # Create scale factor array
   a_start = 1. / ( z_start + 1 )
@@ -30,57 +30,48 @@ def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates_in, cosmo, z_
   time = 0 
   current_a = a_start
   
-  
-  
-  # Copy Input Rates to local arrays  
-  types = [ 'ionization', 'heating' ]
-  species = ['HI', 'HeI', 'HeII']
-  uvb_rates = {}
-  uvb_rates['z'] = {}
-  for chem in species:
-    uvb_rates['z'][chem] = uvb_rates_in['z'].copy() 
-  for type in types:
-    uvb_rates[type] = {}
-    for chem in species:
-      uvb_rates[type][chem] = uvb_rates_in[type][chem].copy() 
-  
-  # Rescalke the Photoionization and Photoheating rates
-  uvb_rates['ionization']['HI']   *= HI_rates_factor
-  uvb_rates['heating']['HI']      *= HI_rates_factor 
-  uvb_rates['ionization']['HeI']  *= HeI_rates_factor
-  uvb_rates['heating']['HeI']     *= HeI_rates_factor 
-  uvb_rates['ionization']['HeII'] *= HeII_rates_factor
-  # uvb_rates['heating']['HeII']    *= HeII_rates_factor 
-  uvb_rates['z']['HI'] += delta_z_HI
-  uvb_rates['z']['HeI'] += delta_z_HI
-  uvb_rates['z']['HeII'] += delta_z_HeII
-  
-
-
-
+  solve_equilibrium = False
     
   current_state, solution = initialize( a_start, T_start, n_H_comov, n_He_comov )
+  
+  if output_to_file is not None:
+    file_name = output_to_file['file_name']
+    output_fields = output_to_file['fields']
+    output_file = open( file_name, "w")
+    print(f'Writing Fields: {output_fields}' )
+    print(f'Output File: {file_name}' )
+    output_to_file['file'] = output_file
+    header = '#'
+    for field in output_fields:
+      header += f' {field}'
+    output_file.write( header )
 
   n_iter = 100
   start = timer.time()
   print('Integrating Thermal Evolution...')
   for i in range(n):
     
-    solve_equilibrium = False
     current_z = 1/current_a - 1
-    
-
-
+  
     append_state_to_solution( fields, current_state, solution )
 
     delta_a = da_vals[i]
     delta_z = dz_vals[i]
     dt = cosmo.get_dt( current_a, delta_a )
+    
+    print_str = 'da = {0:.3e}   dt = {1:.2e}  '.format(delta_a, dt) 
+    # print( print_str )
+    
+    print_str = 'z = {0:.3f}   T = {1:.2f}   n_HI = {2:.5f} '.format(current_z, current_state['temperature'], current_state['n_HI']) 
+    # print( print_str )
 
     state_array = get_state_array( fields, current_state )
-    state_array = RK4_step( all_deriv, time, state_array, dt, cosmo=cosmo, uvb_rates=uvb_rates  )
+    state_array = RK4_step( all_deriv, time, state_array, dt, cosmo=cosmo, uvb_rates=uvb_rates, output_to_file=output_to_file  )
     current_state = update_current_state( fields, state_array, current_state )
     
+    print_str = 'z = {0:.3f}   T = {1:.2f}   n_HI = {2:.5f} '.format(current_z, current_state['temperature'], current_state['n_HI']) 
+    # print( print_str )
+
     if solve_equilibrium:
       H = cosmo.get_Hubble( current_a )
       current_rates_eq = interpolate_rates( current_z, uvb_rates_eq )
@@ -109,6 +100,11 @@ def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates_in, cosmo, z_
   solution['z'] = z_vals
   printProgress( i, n, delta )
   print('\nEvolution Fisished')
+  
+  if output_to_file:
+    output_file.close()
+    print( f'Saved File: {file_name}')
+  
   return solution
 
 def initialize( a_start, T_start, n_H_comov, n_He_comov ):
@@ -157,6 +153,8 @@ def delta_n_hubble( n, time, current_a, cosmo ):
 def all_deriv( time, state_array, kargs=None ):
   cosmo = kargs['cosmo']
   uvb_rates = kargs['uvb_rates']
+  n_step = kargs['n_step'] 
+  output_to_file = kargs['output_to_file']
   temp, n_H, n_HI, n_HII, n_He, n_HeI, n_HeII, n_HeIII, n_e = state_array 
   n_min =  1e-60
   if n_HI < n_min: n_HI = n_min
@@ -171,7 +169,6 @@ def all_deriv( time, state_array, kargs=None ):
   # Get Hubble 
   current_a = cosmo.get_current_a( time )
   current_z = 1./current_a - 1
-  # print( current_z )
   H = cosmo.get_Hubble( current_a ) * 1000 / Mpc  # 1/sec
   dT_dt_hubble =   -2 * H * temp 
   
@@ -179,7 +176,6 @@ def all_deriv( time, state_array, kargs=None ):
   current_rates = interpolate_rates( current_z, uvb_rates, log=False )
   photoheating_rates = current_rates['heating']
   photoionization_rates = current_rates['ionization']
-  
   
   # Photoheating
   Q_phot_HI = n_HI * photoheating_rates['HI'] 
@@ -231,6 +227,19 @@ def all_deriv( time, state_array, kargs=None ):
   dn_dt_coll_HI_HI = Collisional_Ionization_Rate_HI_HI_Lenzuni91( T ) * n_HI * n_HI
   dn_dt_coll_HII_HI = Collisional_Ionization_Rate_HII_HI_Lenzuni91( T ) * n_HII * n_HI
   dn_dt_coll_HeI_HI = Collisional_Ionization_Rate_HeI_HI_Lenzuni91( T ) * n_HeI * n_HI 
+    
+  # Fraction of Recombination to photoionization rates
+  # rates_fraction = dn_dt_recomb_HII / dn_dt_photo_HI
+  # print( f'z: {current_z}  Recombination / Photoionization HI: {rates_fraction}'  )
+  if n_step == 0 and output_to_file:
+    outfile = output_to_file['file']
+    fields = output_to_file['fields']
+    for field in fields:
+      if field == 'z': outfile.write( f'{current_z:.4f} ' )
+      elif field == 'photoionization_HI': outfile.write( f'{dn_dt_photo_HI:.4e} ' )
+      elif field == 'recombination_HI': outfile.write( f'{dn_dt_recomb_HII:.4e} ' )
+      else: print( f'ERROR: Invalid output filed: {field}' )
+    outfile.write( '\n')
   
   
   dn_dt_HI_p  = dn_dt_recomb_HII 
@@ -269,6 +278,11 @@ def all_deriv( time, state_array, kargs=None ):
   dn_dt_e     = dn_dt_e_p     - dn_dt_e_m
   
   dx_dt = ( dn_dt_HI + dn_dt_HII + dn_dt_HeI + dn_dt_HeII + dn_dt_HeIII + dn_dt_e  ) / dens * M_p_cgs 
+  
+  # print( f"Phot Heat   {dQ_dt_phot:.4e}  ")    
+  # print( f"Net Heat:   {dQ_dt:.4e}  ")  
+  # print( f"N_tot:   {n_tot:.4e}  ")    
+  # print( f"dT_dt:   {2./(3*K_b*n_tot)*dQ_dt:.4e}  ")  
     
   d_T_dt = dT_dt_hubble +  2./(3*K_b*n_tot)*dQ_dt - T/x_sum*dx_dt
   # d_T_dt = dT_dt_hubble
@@ -281,32 +295,12 @@ def all_deriv( time, state_array, kargs=None ):
   d_nHeII_dt  = n_hubble_factor * n_HeII  + dn_dt_HeII
   d_nHeIII_dt = n_hubble_factor * n_HeIII + dn_dt_HeIII
   d_ne_dt     = n_hubble_factor * n_e     + dn_dt_e
-  
   return np.array([ d_T_dt, d_nH_dt,  d_nHI_dt, d_nHII_dt, d_nHe_dt,  d_nHeI_dt, d_nHeII_dt, d_nHeIII_dt,  d_ne_dt  ])
+  
 
 
  
-def interpolate_rates( current_z, rates, log=True ):
-  current_rates = {}
-  types = [ 'ionization', 'heating' ]
-  species = ['HI', 'HeI', 'HeII']
-  for type in types:
-    current_rates[type] = {}
-    for chem in species:
-      z_vals = rates['z'][chem]
-      values = rates[type][chem]
-      if log: values = np.log10(values)
-      if current_z > z_vals.max()  : current_val = rate_min
-      elif current_z < z_vals.min() : current_val = values[0]
-      else: 
-        diff = np.abs( z_vals - current_z )
-        indx = np.where( diff == diff.min() )
-        z_interp = current_z
-        current_val = np.interp( z_interp, z_vals, values )
-        # current_val = values[indx]
-        if log: current_val = 10**current_val
-      current_rates[type][chem] = current_val
-  return current_rates
+
   
 
 

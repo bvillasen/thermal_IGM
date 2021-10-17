@@ -1,6 +1,72 @@
 import os, sys
 from os import listdir
 from os.path import isfile, join
+import numpy as np
+
+system = None
+system = os.getenv('SYSTEM_NAME')
+if not system:
+  print( 'Can not find the system name')
+  exit(-1)
+print( f'System: {system}')
+
+if system == 'Eagle':    data_dir = '/home/bruno/Desktop/data/'
+if system == 'Tornado':  data_dir = '/home/bruno/Desktop/ssd_0/data/'
+if system == 'Shamrock': data_dir = '/raid/bruno/data/'
+if system == 'Lux':      data_dir = '/data/groups/comp-astro/bruno/'
+if system == 'Summit':   data_dir = '/gpfs/alpine/csc434/scratch/bvilasen/'
+if system == 'Mac_mini': data_dir = '/Users/bruno/Desktop/data/'
+
+def split_indices( indices, rank, n_procs, adjacent=False ):
+  n_index_total = len(indices)
+  n_proc_indices = (n_index_total-1) // n_procs + 1
+  indices_to_generate = np.array([ rank + i*n_procs for i in range(n_proc_indices) ])
+  if adjacent: indices_to_generate = np.array([ i + rank*n_proc_indices for i in range(n_proc_indices) ])
+  else: indices_to_generate = np.array([ rank + i*n_procs for i in range(n_proc_indices) ])
+  indices_to_generate = indices_to_generate[ indices_to_generate < n_index_total ]
+  return indices_to_generate
+
+def Combine_List_Pair( a, b ):
+  output = []
+  for a_i in a:
+    for b_i in b:
+      if type(b_i) == list:
+        add_in = [a_i] + b_i
+      else:
+        add_in = [ a_i, b_i]
+      output.append( add_in )
+  return output
+
+def Get_Parameters_Combination( param_vals ):
+  n_param = len( param_vals )
+  indices_list = []
+  for i in range(n_param):
+    param_id = n_param - 1 - i
+    n_vals =  len(param_vals[param_id]) 
+    indices_list.append( [ x for x in range(n_vals)] )
+  param_indx_grid = indices_list[0]
+  for i in range( n_param-1 ):
+    param_indx_grid = Combine_List_Pair( indices_list[i+1], param_indx_grid )
+  param_combinations = []
+  for param_indices in param_indx_grid:
+    p_vals = [ ]
+    for p_id, p_indx in enumerate(param_indices):
+      p_vals.append( param_vals[p_id][p_indx] )
+    param_combinations.append( p_vals )
+  return param_combinations
+  
+def Load_Pickle_Directory( input_name ):
+  import pickle
+  print( f'Loading File: {input_name}')
+  dir = pickle.load( open( input_name, 'rb' ) )
+  return dir
+  
+def Write_Pickle_Directory( dir, output_name ):
+  import pickle 
+  f = open( output_name, 'wb' )
+  pickle.dump( dir, f)
+  print ( f'Saved File: {output_name}' )
+
 
 def printProgress( current, total,  deltaTime, print_str='' ):
   terminalString = "\rProgress: "
@@ -20,14 +86,15 @@ def printProgress( current, total,  deltaTime, print_str='' ):
   sys.stdout. write(terminalString)
   sys.stdout.flush() 
 
-def create_directory( dir ):
-  print(("Creating Directory: {0}".format(dir) ))
+def create_directory( dir, print_out=True ):
+  if print_out: print(("Creating Directory: {0}".format(dir) ))
   indx = dir[:-1].rfind('/' )
   inDir = dir[:indx]
   dirName = dir[indx:].replace('/','')
   dir_list = next(os.walk(inDir))[1]
-  if dirName in dir_list: print( " Directory exists")
+  if dirName in dir_list : 
+    if print_out:print( " Directory exists")
   else:
     os.mkdir( dir )
-    print( " Directory created")
+    if print_out: print( " Directory created")
 
