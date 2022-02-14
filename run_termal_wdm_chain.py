@@ -68,19 +68,19 @@ print( f'proc_id: {rank}   n_local: {n_local}' )
 
 
 #Select parameters and compute modified UVB rates
-sim_id = 0
-sim_params = params_chain[sim_id]
-inv_wdm_mass, beta_ion, alpha_heat, delta_z = sim_params
+for sim_id in ids_local:
+  sim_params = params_chain[sim_id]
+  inv_wdm_mass, beta_ion, alpha_heat, delta_z = sim_params
 
-# # Set photoheating and photoionization rates
-uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
-uvb_parameters = {'scale_H_ion':beta_ion, 'scale_H_Eheat':alpha_heat, 'deltaZ_H':delta_z  } 
-uvb_rates = Modify_UVB_Rates_extended( uvb_parameters,  uvb_rates )
+  # # Set photoheating and photoionization rates
+  uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
+  uvb_parameters = {'scale_H_ion':beta_ion, 'scale_H_Eheat':alpha_heat, 'deltaZ_H':delta_z  } 
+  uvb_rates = Modify_UVB_Rates_extended( uvb_parameters,  uvb_rates )
 
-# Integrate the solution
-integrator = 'bdf'
-# integrator = 'rk4'
-solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
+  # Integrate the solution
+  integrator = 'bdf'
+  # integrator = 'rk4'
+  solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
 
-output_file_name = output_dir + f'solution_{sim_id}.h5'
-Write_Solution( solution, output_file_name, n_stride=50, fields_to_write=['z', 'temperature'] )
+  output_file_name = output_dir + f'solution_{sim_id}.h5'
+  Write_Solution( solution, output_file_name, n_stride=50, fields_to_write=['z', 'temperature'] )
