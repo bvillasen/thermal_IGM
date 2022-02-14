@@ -65,5 +65,5 @@ integrator = 'bdf'
 # integrator = 'rk4'
 solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
 
-output_file_name = output_dir + f'solution_{}.h5'
+output_file_name = output_dir + f'solution_{sim_id}.h5'
 Write_Solution( solution, output_file_name )
