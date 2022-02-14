@@ -25,8 +25,9 @@ else:
   rank = 0
   n_procs = 1
 
-
-output_dir = data_dir + 'cosmo_sims/sim_grid/1024_wdmgrid_nsim600/temperature_evolution/'
+grid_dir = data_dir + 'cosmo_sims/sim_grid/1024_wdmgrid_nsim600/'
+input_dir = grid_dir + '/fit_mcmc/fit_results_P(k)+_Boera_covmatrix/'
+output_dir = input_dir + 'temperature_evolution/'
 uvb_rates_file = 'data/uvb_rates_V21_grackle.h5'
 print( f'UVB Rates File: {uvb_rates_file}' )
 print( f'Output Dir:     {output_dir}' )
@@ -50,20 +51,30 @@ n_H_comov = rho_H / M_p          # cm^-3
 n_He_comov = rho_He / (4*M_p)    # cm^-3
 a_start = 1. / (z_start + 1)
 rho_cgs = rho_gas_mean * 1e3 / a_start**3 
-
 H = cosmo.get_Hubble( a_start ) * 1000 / Mpc  # 1/sec
 
-sim_id = 0
 
-# Set photoheating and photoionization rates
-uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
-uvb_parameters = {'scale_H':1.0, 'scale_He':1.0, 'delta_z_H':0.0, 'delta_z_He':0.0 } 
-uvb_rates = Modify_UVB_Rates( uvb_parameters,  uvb_rates )
+#Load the chain of the parameters
+file_name = input_dir + 'samples_mcmc.pkl'
+param_trace = Load_Pickle_Directory( file_name )
+params_chain = [ param_trace[param_id]['tarce'] for param_id in param_trace ]
+params_name = [ param_trace[param_id]['name'] for param_id in param_trace ]
+params_chain = np.array( params_chain ).T
+ 
 
-# Integrate the solution
-integrator = 'bdf'
-# integrator = 'rk4'
-solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
 
-output_file_name = output_dir + f'solution_{sim_id}.h5'
-Write_Solution( solution, output_file_name )
+# 
+# sim_id = 0
+# 
+# # Set photoheating and photoionization rates
+# uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
+# uvb_parameters = {'scale_H':1.0, 'scale_He':1.0, 'delta_z_H':0.0, 'delta_z_He':0.0 } 
+# uvb_rates = Modify_UVB_Rates( uvb_parameters,  uvb_rates )
+# 
+# # Integrate the solution
+# integrator = 'bdf'
+# # integrator = 'rk4'
+# solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
+# 
+# output_file_name = output_dir + f'solution_{sim_id}.h5'
+# Write_Solution( solution, output_file_name, n_stride=10 )
