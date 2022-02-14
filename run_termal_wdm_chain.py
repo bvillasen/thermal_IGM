@@ -15,7 +15,7 @@ from uvb_functions import Modify_UVB_Rates_extended
 from data_functions import Write_Solution
 from plot_functions import *
 
-use_mpi = True
+use_mpi = False
 if use_mpi:
   from mpi4py import MPI
   comm = MPI.COMM_WORLD
