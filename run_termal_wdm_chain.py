@@ -11,11 +11,11 @@ from cosmo_constants import Myear, Mpc, K_b, M_p, Gcosmo
 from load_rates_pchw19 import rates_pchw19, rates_pchw19_eq
 from load_grackle_rates_file import Load_Grackle_UVB_File
 from temp_functions import Integrate_Evolution
-from uvb_functions import Modify_UVB_Rates, Reaplace_Gamma_Parttial
+from uvb_functions import Modify_UVB_Rates_extended
 from data_functions import Write_Solution
 from plot_functions import *
 
-use_mpi = False
+use_mpi = True
 if use_mpi:
   from mpi4py import MPI
   comm = MPI.COMM_WORLD
@@ -31,7 +31,7 @@ output_dir = input_dir + 'temperature_evolution/'
 uvb_rates_file = 'data/uvb_rates_V21_grackle.h5'
 print( f'UVB Rates File: {uvb_rates_file}' )
 print( f'Output Dir:     {output_dir}' )
-create_directory( output_dir, print_out=False )
+if rank == 0: create_directory( output_dir, print_out=False )
 
 # Initialize Cosmology
 z_start = 16
@@ -57,24 +57,30 @@ H = cosmo.get_Hubble( a_start ) * 1000 / Mpc  # 1/sec
 #Load the chain of the parameters
 file_name = input_dir + 'samples_mcmc.pkl'
 param_trace = Load_Pickle_Directory( file_name )
-params_chain = [ param_trace[param_id]['tarce'] for param_id in param_trace ]
+params_chain = [ param_trace[param_id]['trace'] for param_id in param_trace ]
 params_name = [ param_trace[param_id]['name'] for param_id in param_trace ]
 params_chain = np.array( params_chain ).T
- 
+n_in_chain = params_chain.shape[0]
+ids_global = np.arange( 0, n_in_chain, dtype=int )
+ids_local = split_array_mpi( ids_global, rank, n_procs)
+n_local = len(ids_local )
+print( f'proc_id: {rank}   n_local: {n_local}' )
 
 
-# 
-# sim_id = 0
-# 
+#Select parameters and compute modified UVB rates
+sim_id = 0
+sim_params = params_chain[sim_id]
+inv_wdm_mass, beta_ion, alpha_heat, delta_z = sim_params
+
 # # Set photoheating and photoionization rates
-# uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
-# uvb_parameters = {'scale_H':1.0, 'scale_He':1.0, 'delta_z_H':0.0, 'delta_z_He':0.0 } 
-# uvb_rates = Modify_UVB_Rates( uvb_parameters,  uvb_rates )
-# 
-# # Integrate the solution
-# integrator = 'bdf'
-# # integrator = 'rk4'
-# solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
-# 
-# output_file_name = output_dir + f'solution_{sim_id}.h5'
-# Write_Solution( solution, output_file_name, n_stride=10 )
+uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
+uvb_parameters = {'scale_H_ion':beta_ion, 'scale_H_Eheat':alpha_heat, 'deltaZ_H':delta_z  } 
+uvb_rates = Modify_UVB_Rates_extended( uvb_parameters,  uvb_rates )
+
+# Integrate the solution
+integrator = 'bdf'
+# integrator = 'rk4'
+solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None, integrator=integrator )
+
+output_file_name = output_dir + f'solution_{sim_id}.h5'
+Write_Solution( solution, output_file_name, n_stride=20 )

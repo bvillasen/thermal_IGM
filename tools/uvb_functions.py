@@ -19,6 +19,52 @@ def Reaplace_Gamma_Parttial( z, gamma, change_z, change_gamma ):
   gamma_new[indx_last] = np.sqrt( gamma_new[indx_last-1]*gamma_new[indx_last+1])
   return gamma_new
 
+def Modify_UVB_Rates_extended( parameters, uvb_rates_in, print_out=False ):  
+  # Copy Input Rates to local arrays  
+  types = [ 'ionization', 'heating' ]
+  species = ['HI', 'HeI', 'HeII']
+  uvb_rates = {}
+  uvb_rates['z'] = {}
+  for chem in species:
+    uvb_rates['z'][chem] = uvb_rates_in['z'].copy() 
+  for type in types:
+    uvb_rates[type] = {}
+    for chem in species:
+      uvb_rates[type][chem] = uvb_rates_in[type][chem].copy() 
+  
+  skip_parameters = [ 'wdm_mass' ]
+  
+  info = 'Rates for '
+  for p_name in parameters.keys():
+    if p_name in skip_parameters: continue
+    p_val = parameters[p_name]
+    info += f' {p_name}:{p_val}' 
+    
+    if p_name == 'scale_H_ion':
+      uvb_rates['ionization']['HI']  *= p_val
+      uvb_rates['ionization']['HeI'] *= p_val
+    
+    elif p_name == 'scale_H_Eheat':
+      if 'scale_H_ion' in parameters: scale_H_ion = parameters['scale_H_ion']
+      else:
+        scale_H_ion = 1 
+        print('WARNING: Using scale_H_ion = 1 for computing modified heating rates by rescaling the phoelectron energy')
+      scale_H_heat = scale_H_ion * p_val
+      uvb_rates['heating']['HI']  *= scale_H_heat
+      uvb_rates['heating']['HeI'] *= scale_H_heat
+    
+    elif p_name == 'deltaZ_H':
+      uvb_rates['z']['HI']  += p_val
+      uvb_rates['z']['HeI'] += p_val
+    
+    else:
+      print( f'ERROR: Modification not defined for parameter: {p_name}')
+    
+  if print_out: print( info )
+  return uvb_rates
+
+
+
 def Modify_UVB_Rates( parameters, uvb_rates_in ):  
   # Copy Input Rates to local arrays  
   types = [ 'ionization', 'heating' ]
