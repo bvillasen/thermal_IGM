@@ -1,0 +1,16 @@
+{
+  "uploadOnSave": true,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "hostname": "shamrock.ucsc.edu",
+  "port": "22",
+  "target": "thermal_IGM",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "bruno",
+  "watch": [],
+  "transport": "scp",
+  "keyfile": "/Users/bruno/.ssh/id_rsa"
+}

@@ -16,6 +16,7 @@ if system == 'Shamrock': data_dir = '/raid/bruno/data/'
 if system == 'Lux':      data_dir = '/data/groups/comp-astro/bruno/'
 if system == 'Summit':   data_dir = '/gpfs/alpine/csc434/scratch/bvilasen/'
 if system == 'Mac_mini': data_dir = '/Users/bruno/Desktop/data/'
+if system == 'MacBook':  data_dir = '/Users/bruno/Desktop/data/'
 
 def split_indices( indices, rank, n_procs, adjacent=False ):
   n_index_total = len(indices)

@@ -72,32 +72,50 @@ def Plot_HI_fraction( output_dir, solution=None, input_file=None, solutions=None
 
   
 
-def Plot_Solution( output_dir, solution=None, input_file=None, file_name='solution.png' ):
-
-
+def Plot_Solution( output_dir, solution=None, input_file=None, file_name='solution.png', multiple=False ):
+  
+  
   if not solution: 
     file = h5.File( input_file, 'r' )
     solution = { key:file[key][...] for key in file }
-    file.close
+    file.close()
 
-  z = solution['z']
-  temperature = solution['temperature']
-  HII_frac   = solution['n_HII'] / solution['n_H']
-  HeIII_frac = solution['n_HeIII'] / solution['n_He']
+  if not multiple: solutions = { 0: solution }
+  else: solutions = solution
+  
+   
 
 
   ncols, nrows = 1, 3
   fig, ax_l = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10*ncols,3*nrows), sharex=True)
   plt.subplots_adjust( hspace = 0.03, wspace=0.02)
+  
+  for data_id in solutions:
+    solution = solutions[data_id]
+    
+    z = solution['z']
+    temperature = solution['temperature']
+    HI_frac    = solution['n_HI'] / solution['n_H']
+    HII_frac   = solution['n_HII'] / solution['n_H']
+    HeIII_frac = solution['n_HeIII'] / solution['n_He']
+    
+    ls = '-'
+    if 'line_style' in solution: ls = solution['line_style']
+    
+    label = ''
+    if 'label' in solution: label = solution['label']
 
+    ax = ax_l[0]
+    ax.plot( z, temperature, ls=ls, label=label )
+
+    ax = ax_l[1]
+    ax.plot( z, HI_frac, ls=ls, label=label )
+
+    ax = ax_l[2]
+    ax.plot( z, HeIII_frac, ls=ls, label=label )
+  
   ax = ax_l[0]
-  ax.plot( z, temperature )
-
-  ax = ax_l[1]
-  ax.plot( z, HII_frac )
-
-  ax = ax_l[2]
-  ax.plot( z, HeIII_frac )
+  ax.legend( frameon=False )
 
 
   fig_name = output_dir + file_name
