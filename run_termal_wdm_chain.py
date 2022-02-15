@@ -71,7 +71,8 @@ print( f'proc_id: {rank}   n_local: {n_local}' )
 #Select parameters and compute modified UVB rates
 for sim_id in ids_local:
   sim_params = params_chain[sim_id]
-  inv_wdm_mass, beta_ion, alpha_heat, delta_z = sim_params
+  # inv_wdm_mass, beta_ion, alpha_heat, delta_z = sim_params
+  beta_ion, alpha_heat, delta_z = sim_params
 
   # # Set photoheating and photoionization rates
   uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
