@@ -25,7 +25,8 @@ else:
   rank = 0
   n_procs = 1
 
-grid_dir = data_dir + 'cosmo_sims/sim_grid/1024_wdmgrid_nsim600/'
+# grid_dir = data_dir + 'cosmo_sims/sim_grid/1024_wdmgrid_nsim600/'
+grid_dir = data_dir + 'cosmo_sims/sim_grid/1024_wdmgrid_cdm/'
 input_dir = grid_dir + '/fit_mcmc/fit_results_P(k)+_Boera_covmatrix/'
 output_dir = input_dir + 'temperature_evolution/'
 uvb_rates_file = 'data/uvb_rates_V21_grackle.h5'
