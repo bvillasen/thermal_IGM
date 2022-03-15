@@ -86,7 +86,7 @@ def Plot_Solution( output_dir, solution=None, input_file=None, file_name='soluti
    
 
 
-  ncols, nrows = 1, 3
+  ncols, nrows = 1, 4
   fig, ax_l = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10*ncols,3*nrows), sharex=True)
   plt.subplots_adjust( hspace = 0.03, wspace=0.02)
   
@@ -98,6 +98,7 @@ def Plot_Solution( output_dir, solution=None, input_file=None, file_name='soluti
     HI_frac    = solution['n_HI'] / solution['n_H']
     HII_frac   = solution['n_HII'] / solution['n_H']
     HeIII_frac = solution['n_HeIII'] / solution['n_He']
+    n_e        = solution['n_e']
     
     ls = '-'
     if 'line_style' in solution: ls = solution['line_style']
@@ -113,6 +114,10 @@ def Plot_Solution( output_dir, solution=None, input_file=None, file_name='soluti
 
     ax = ax_l[2]
     ax.plot( z, HeIII_frac, ls=ls, label=label )
+    
+    ax = ax_l[3]
+    ax.plot( z, n_e, ls=ls, label=label )
+    ax.set_yscale('log')
   
   ax = ax_l[0]
   ax.legend( frameon=False )

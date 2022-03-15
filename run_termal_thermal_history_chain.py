@@ -27,7 +27,7 @@ else:
 
 
 grid_dir = data_dir + 'cosmo_sims/sim_grid/1024_P19m_np4_nsim400/'
-input_dir = grid_dir + '/fit_mcmc/fit_results_covariance_systematic/'
+input_dir = grid_dir + 'fit_mcmc/fit_results_covariance_systematic/'
 output_dir = input_dir + 'thermal/'
 uvb_rates_file = 'data/UVB_rates_P19_grackle.h5'
 print( f'UVB Rates File: {uvb_rates_file}' )
@@ -85,5 +85,5 @@ for sim_id in ids_local:
 
   output_file_name = output_dir + f'solution_{sim_id}.h5'
   Write_Solution( solution, output_file_name, n_stride=100, fields_to_write=['z', 'temperature', 'n_H', 'n_HI', 'n_e'] )
-
+  Plot_Solution( output_dir, solution, file_name=f'solution_{sim_id}.png' )
   break
