@@ -15,7 +15,7 @@ from uvb_functions import Modify_UVB_Rates
 from data_functions import Write_Solution
 from plot_functions import *
 
-use_mpi = False
+use_mpi = True
 if use_mpi:
   from mpi4py import MPI
   comm = MPI.COMM_WORLD
@@ -85,5 +85,4 @@ for sim_id in ids_local:
 
   output_file_name = output_dir + f'solution_{sim_id}.h5'
   Write_Solution( solution, output_file_name, n_stride=50, fields_to_write=['z', 'temperature', 'n_H', 'n_HI', 'n_e'] )
-  Plot_Solution( output_dir, solution, file_name=f'solution_{sim_id}.png' )
-  break
+  # Plot_Solution( output_dir, solution, file_name=f'solution_{sim_id}.png' )
