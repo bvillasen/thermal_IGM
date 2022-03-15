@@ -11,7 +11,7 @@ from cosmo_constants import Myear, Mpc, K_b, M_p, Gcosmo
 from load_rates_pchw19 import rates_pchw19, rates_pchw19_eq
 from load_grackle_rates_file import Load_Grackle_UVB_File
 from temp_functions import Integrate_Evolution
-from uvb_functions import Modify_UVB_Rates_extended
+from uvb_functions import Modify_UVB_Rates
 from data_functions import Write_Solution
 from plot_functions import *
 
