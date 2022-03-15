@@ -118,6 +118,7 @@ def Plot_Solution( output_dir, solution=None, input_file=None, file_name='soluti
     ax = ax_l[3]
     ax.plot( z, n_e, ls=ls, label=label )
     ax.set_yscale('log')
+    ax.set_ylim( 1e-10, 1e-5)
   
   ax = ax_l[0]
   ax.legend( frameon=False )
