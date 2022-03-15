@@ -75,7 +75,7 @@ for sim_id in ids_local:
 
   # # Set photoheating and photoionization rates
   uvb_rates = Load_Grackle_UVB_File( uvb_rates_file )
-  uvb_parameters = {'scale_H_ion':beta_ion, 'scale_H_Eheat':alpha_heat, 'deltaZ_H':delta_z  } 
+  uvb_parameters = {'scale_He':scale_He, 'scale_H':scale_H, 'deltaZ_He':delta_z_He, 'deltaZ_H':delta_z_H  } 
   uvb_rates = Modify_UVB_Rates_extended( uvb_parameters,  uvb_rates )
 
   # Integrate the solution
