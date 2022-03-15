@@ -26,8 +26,9 @@ else:
   n_procs = 1
 
 
-output_dir = data_dir + 'chemistry_test/'
-uvb_rates_file = 'data/UVB_rates_P19m.h5'
+output_dir = data_dir + 'cosmo_sims/1024_50Mpc_HM12/'
+# uvb_rates_file = 'data/UVB_rates_P19m.h5'
+uvb_rates_file = 'data/UVB_rates_HM12.h5'
 print( f'UVB Rates File: {uvb_rates_file}' )
 print( f'Output Dir:     {output_dir}' )
 create_directory( output_dir, print_out=False )
