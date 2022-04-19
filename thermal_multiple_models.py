@@ -18,7 +18,7 @@ from plot_functions import *
 
 
 project_name = 'reduced_heating'
-project_name = 'zero_heat'
+# project_name = 'zero_heat'
 
 input_dir  = data_dir + f'modified_uvb_rates/{project_name}/uvb_models/'
 output_dir = data_dir + f'modified_uvb_rates/{project_name}/thermal_solutions/'

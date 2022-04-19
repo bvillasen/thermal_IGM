@@ -2,7 +2,7 @@
   "uploadOnSave": true,
   "useAtomicWrites": false,
   "deleteLocal": false,
-  "hostname": "shamrock.ucsc.edu",
+  "hostname": "lux.ucsc.edu",
   "port": "22",
   "target": "thermal_IGM",
   "ignore": [

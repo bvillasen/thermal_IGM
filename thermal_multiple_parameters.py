@@ -12,7 +12,7 @@ from cosmo_constants import Myear, Mpc, K_b, M_p, Gcosmo
 from load_rates_pchw19 import rates_pchw19
 from load_grackle_rates_file import Load_Grackle_UVB_File
 from temp_functions import Integrate_Evolution
-from uvb_functions import Modify_UVB_Rates
+from uvb_functions import Modify_UVB_Rates, Extend_Rates_Redshift
 from data_functions import Write_Solution
 from plot_functions import *
 
@@ -26,7 +26,7 @@ else:
   rank = 0
   n_procs = 1
 
-output_dir = data_dir + 'tau_electron/'
+output_dir = data_dir + 'projects/thermal_history/data/ionization_history/'
 if rank == 0:  create_directory( output_dir )
 
 # Initialize Cosmology
@@ -34,7 +34,7 @@ z_start = 16
 cosmo = Cosmology( z_start )
 
 # Initialize parameters
-n_samples = 10000 * 1000
+n_samples = 10000 * 100
 z_end = 0.
 T_start = 1
 X = 0.75984
@@ -50,25 +50,35 @@ rho_cgs = rho_gas_mean * 1e3 / a_start**3
 
 H = cosmo.get_Hubble( a_start ) * 1000 / Mpc  # 1/sec
 
+# p_vals_HL = [ 0.45, 0.77, 0.31, 0.1 ]
+# param_vals = {}
+# param_vals[0] = [ 0.33, 0.54 ]
+# param_vals[1] = [ 0.75, 0.79 ]
+# param_vals[2] = [ 0.21, 0.38 ]
+# param_vals[3] = [ 0.02, 0.17 ]  
+
+p_vals_HL = [ 0.47, 0.81, 0.25, -0.09]
 param_vals = {}
-param_vals[0] = [ 0.33, 0.54 ]
-param_vals[1] = [ 0.75, 0.79 ]
-param_vals[2] = [ 0.21, 0.38 ]
-param_vals[3] = [ 0.02, 0.17 ]  
+param_vals[0] = [ 0.38, 0.60 ]
+param_vals[1] = [ 0.78, 0.85 ]
+param_vals[2] = [ 0.18, 0.34 ]
+param_vals[3] = [ -0.33, 0.05 ]
 
 
 param_grid = Get_Parameters_Combination( param_vals )
 n_models = len( param_grid )
 
+model_id = rank
+p_vals = param_grid[model_id]
 
-# model_id = rank
-model_id = 'HL'
+# model_id = 'HL'
+# p_vals = p_vals_HL
+print( model_id )
+
 # Load the Original Rates
 grackle_file_name =  'data/CloudyData_UVB_Puchwein2019_cloudy.h5'
 rates_P19 = Load_Grackle_UVB_File( grackle_file_name )
 
-# p_vals = param_grid[model_id]
-p_vals = [ 0.45, 0.77, 0.31, 0.1 ]
 uvb_parameters = { 'scale_He':p_vals[0], 'scale_H':p_vals[1], 'delta_z_He':p_vals[2], 'delta_z_H':p_vals[3] } 
 uvb_rates = Modify_UVB_Rates( uvb_parameters,  rates_P19 )
 

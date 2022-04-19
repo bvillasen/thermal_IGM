@@ -1,8 +1,27 @@
 import numpy as np
 
 
+def Extend_Rates_Redshift( max_delta_z, grackle_data, log=True ):
+  data_out = {}
+  root_key = 'UVBRates'
+  data_root = grackle_data[root_key].copy()
+  z_0 =  data_root['z'][...]
+  z_new = Extend_Redshift( max_delta_z, z_0)
+  data_out[root_key] = {}
+  data_out[root_key]['z'] = z_new
+  keys_gk = ['Chemistry', 'Photoheating' ]
+  for key_gk in keys_gk:
+    data_gk = data_root[key_gk]
+    data_out[root_key][key_gk] = {}
+    for key in data_gk.keys():
+      rate = data_gk[key][...]
+      if log: rate=np.log10(rate)
+      rate_new = Interpoate_Rate( z_new, z_0, rate )
+      if log: rate_new = 10**rate_new
+      data_out[root_key][key_gk][key] = rate_new
+  return data_out
 
-  
+
 
 
 def Reaplace_Gamma_Parttial( z, gamma, change_z, change_gamma ):
