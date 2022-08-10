@@ -27,7 +27,8 @@ else:
   n_procs = 1
 
 
-grid_name = '1024_P19m_np4_nsim400'
+grid_name = '1024_wdmgrid_extended_beta'
+grid_name = '1024_wdmgrid_cdm_extended_beta'
 grid_dir = data_dir + f'cosmo_sims/sim_grid/{grid_name}/' 
 root_dir = grid_dir + f'simulation_files/'
 thermal_dir = grid_dir + 'thermal/'
@@ -58,8 +59,8 @@ for sim_id in sim_ids_local:
   cosmo = Cosmology( z_start )
 
   # Initialize parameters
-  n_samples = 10000
-  z_end = 2.
+  n_samples = 100000
+  z_end = 4.
   T_start = 5
   X = 0.75984
 
@@ -79,25 +80,32 @@ for sim_id in sim_ids_local:
   uvb_parameters = {'scale_H':1.0, 'scale_He':1.0, 'delta_z_H':0.0, 'delta_z_He':0.0 } 
   uvb_rates = Modify_UVB_Rates( uvb_parameters,  uvb_rates )
   solution = Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None )
-  output_file_name = output_dir + 'solution.h5'
-  Write_Solution( solution, output_file_name )
-  # 
-  # z      = solution['z']
-  # nH     = solution['n_H']
-  # nHII   = solution['n_HII']
-  # nHe    = solution['n_He']
-  # nHeIII = solution['n_HeIII']
-  # ion_frac_H  = 0.99
-  # ion_frac_He = 0.99
-  # HII_frac   = nHII / nH
+  
+  # output_file_name = output_dir + 'solution.h5'
+  # Write_Solution( solution, output_file_name )
+  
+  z      = solution['z']
+  nH     = solution['n_H']
+  nHII   = solution['n_HII']
+  nHe    = solution['n_He']
+  nHeIII = solution['n_HeIII']
+  ion_frac_H  = 0.999
+  ion_frac_He = 0.999
+  
+  HII_frac   = nHII / nH
+  z_ion_H  = z[HII_frac   > ion_frac_H].max()
+  
+  
   # HeIII_frac = nHeIII / nHe
-  # z_ion_H  = z[HII_frac   > ion_frac_H].max()
   # z_ion_He = z[HeIII_frac > ion_frac_He].max()
-  # 
-  # 
+  
+  
   # global_props = { 'ion_frac_H':ion_frac_H, 'ion_frac_He':ion_frac_He, 'z_ion_H':z_ion_H, 'z_ion_He':z_ion_He }
-  # output_file_name = output_dir + 'global_properties.pkl'
-  # print( global_props)
-  # Write_Pickle_Directory( global_props, output_file_name )
-  # 
+  global_props = { 'ion_frac_H':ion_frac_H, 'z_ion_H':z_ion_H,  }
+  
+  output_file_name = output_dir + 'global_properties.pkl'
+  print( global_props)
+  Write_Pickle_Directory( global_props, output_file_name )
+
+  
 

@@ -17,7 +17,7 @@ fields = [ 'temperature', 'n_H', 'n_HI', 'n_HII', 'n_He', 'n_HeI', 'n_HeII', 'n_
 
 
 def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_start, z_end, n_samples, output_to_file=None,
-                         integrator='bdf' ):
+                         integrator='bdf', print_out=True ):
   
   
   
@@ -52,8 +52,9 @@ def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_sta
 
   n_iter = 100
   start = timer.time()
-  print( f'Integrator: {integrator}')
-  print('Integrating Thermal Evolution...')
+  if print_out:
+    print( f'Integrator: {integrator}')
+    print('Integrating Thermal Evolution...')
   for i in range(n):
     
     current_z = 1/current_a - 1
@@ -92,7 +93,7 @@ def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_sta
     time += dt
     current_a += delta_a
   
-    if i%n_iter == 0:
+    if i%n_iter == 0 and print_out:
       end = timer.time()
       delta = end - start
       n_H   = current_state['n_H']
@@ -106,12 +107,13 @@ def Integrate_Evolution( n_H_comov, n_He_comov, T_start, uvb_rates, cosmo, z_sta
   for field in fields:
     solution[field] = np.array(solution[field])
   solution['z'] = z_vals
-  printProgress( i, n, delta )
-  print('\nEvolution Fisished')
+  if print_out:
+    printProgress( i, n, delta )
+    print('\nEvolution Fisished')
   
   if output_to_file:
     output_file.close()
-    print( f'Saved File: {file_name}')
+    if print_out:print( f'Saved File: {file_name}')
   
   return solution
 

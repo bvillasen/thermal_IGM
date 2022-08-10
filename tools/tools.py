@@ -77,6 +77,26 @@ def Write_Pickle_Directory( dir, output_name ):
   pickle.dump( dir, f)
   print ( f'Saved File: {output_name}' )
 
+def print_progress( i, n, time_start, extra_line="" ):
+  import time
+  time_now = time.time()
+  time = time_now - time_start
+  if i == 0: remaining = time *  n
+  else: remaining = time * ( n - i ) / i
+
+  hrs = remaining // 3600
+  min = (remaining - hrs*3600) // 60
+  sec = remaining - hrs*3600 - min*60
+  etr = f'{hrs:02.0f}:{min:02.0f}:{sec:02.0f}'
+  progres = f'{extra_line}Progress:   {i}/{n}   {i/n*100:.1f}%   ETR: {etr} '
+  print_line_flush (progres )
+
+
+def print_line_flush( terminalString ):
+  terminalString = '\r' + terminalString
+  sys.stdout. write(terminalString)
+  sys.stdout.flush() 
+
 
 def printProgress( current, total,  deltaTime, print_str='' ):
   terminalString = "\rProgress: "

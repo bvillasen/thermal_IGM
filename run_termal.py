@@ -26,9 +26,9 @@ else:
   n_procs = 1
 
 
-output_dir = data_dir + 'cosmo_sims/1024_50Mpc_HM12/'
+output_dir = data_dir + 'thermal_V22/'
 # uvb_rates_file = 'data/UVB_rates_P19m.h5'
-uvb_rates_file = 'data/UVB_rates_HM12.h5'
+uvb_rates_file = 'data/UVB_rates_V22.h5'
 print( f'UVB Rates File: {uvb_rates_file}' )
 print( f'Output Dir:     {output_dir}' )
 create_directory( output_dir, print_out=False )
@@ -38,8 +38,8 @@ z_start = 16
 cosmo = Cosmology( z_start )
 
 # Initialize parameters
-n_samples = 1000000
-z_end = 2.
+n_samples = 10000
+z_end = 4.
 T_start = 5
 X = 0.75984
 
